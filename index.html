@@ -84,9 +84,12 @@
 
         // Check if already logged in
         async function checkSession() {
-            const res = await window.authApp.getCurrentUser();
-            if (res.success) {
-                window.location.href = 'dashboard.html';
+            const token = localStorage.getItem('token');
+            if (token) {
+                const res = await window.authApp.getCurrentUser();
+                if (res.success) {
+                    window.location.href = 'dashboard.html';
+                }
             }
         }
         checkSession();

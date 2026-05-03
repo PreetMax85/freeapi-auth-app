@@ -21,8 +21,7 @@ async function registerUser(username, email, password) {
                 email,
                 password,
                 role: 'USER'
-            }),
-            credentials: 'include'
+            })
         });
         return await handleResponse(response);
     } catch (error) {
@@ -40,10 +39,13 @@ async function loginUser(username, password) {
             body: JSON.stringify({
                 username,
                 password
-            }),
-            credentials: 'include'
+            })
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        if (result.success && result.data.accessToken) {
+            localStorage.setItem('token', result.data.accessToken);
+        }
+        return result;
     } catch (error) {
         return { success: false, message: error.message };
     }
@@ -55,10 +57,14 @@ async function logoutUser() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            credentials: 'include'
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        if (result.success) {
+            localStorage.removeItem('token');
+        }
+        return result;
     } catch (error) {
         return { success: false, message: error.message };
     }
@@ -70,8 +76,8 @@ async function getCurrentUser() {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            credentials: 'include'
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
         });
         return await handleResponse(response);
     } catch (error) {
