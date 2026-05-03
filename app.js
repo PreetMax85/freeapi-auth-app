@@ -5,7 +5,12 @@ async function handleResponse(response) {
     if (response.ok) {
         return { success: true, data: data.data };
     } else {
-        return { success: false, message: data.message || 'Something went wrong' };
+        // If there are validation errors, they are usually in data.errors
+        const errorMessage = data.errors && data.errors.length > 0 
+            ? `${data.message}: ${data.errors.map(e => e.msg || e.message).join(', ')}` 
+            : data.message || 'Something went wrong';
+        console.error('API Error:', data);
+        return { success: false, message: errorMessage };
     }
 }
 
@@ -15,6 +20,7 @@ async function registerUser(username, email, password) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
                 username,
@@ -35,6 +41,7 @@ async function loginUser(username, password) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
                 username,
@@ -57,6 +64,7 @@ async function logoutUser() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         });
@@ -76,6 +84,7 @@ async function getCurrentUser() {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         });
