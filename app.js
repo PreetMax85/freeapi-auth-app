@@ -5,11 +5,17 @@ async function handleResponse(response) {
     if (response.ok) {
         return { success: true, data: data.data };
     } else {
-        // If there are validation errors, they are usually in data.errors
-        const errorMessage = data.errors && data.errors.length > 0 
-            ? `${data.message}: ${data.errors.map(e => e.msg || e.message).join(', ')}` 
-            : data.message || 'Something went wrong';
-        console.error('API Error:', data);
+        // More robust error extraction for FreeAPI's error format
+        let details = '';
+        if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+            details = ': ' + data.errors.map(e => {
+                if (typeof e === 'string') return e;
+                return e.msg || e.message || JSON.stringify(e);
+            }).join(', ');
+        }
+        
+        const errorMessage = (data.message || 'Something went wrong') + details;
+        console.error('Full API Error Context:', data);
         return { success: false, message: errorMessage };
     }
 }
