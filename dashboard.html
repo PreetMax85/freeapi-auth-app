@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Auth App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #111;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div id="loading-state" class="w-full max-w-[400px] space-y-4">
+        <div class="h-48 bg-[#1a1a1a] rounded-lg animate-pulse border border-[#333]"></div>
+        <div class="h-10 bg-[#1a1a1a] rounded-lg animate-pulse border border-[#333]"></div>
+    </div>
+
+    <div id="profile-card" class="hidden w-full max-w-[400px] bg-[#1a1a1a] p-8 rounded-lg shadow-xl border border-[#333] text-center">
+        <img id="avatar" src="" alt="Avatar" class="w-24 h-24 rounded-full mx-auto mb-4 border-2 border-[#333]">
+        <h1 id="username" class="text-2xl font-bold mb-1"></h1>
+        <p id="email" class="text-gray-400 mb-4"></p>
+        
+        <div class="text-left space-y-2 mb-8 p-4 bg-[#222] rounded-md border border-[#333]">
+            <div class="flex justify-between">
+                <span class="text-gray-500 text-sm uppercase">Role</span>
+                <span id="role" class="text-sm font-medium"></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 text-sm uppercase">Joined</span>
+                <span id="created-at" class="text-sm font-medium"></span>
+            </div>
+        </div>
+
+        <button id="logout-btn" class="w-full bg-[#333] text-white font-bold py-2 rounded-md hover:bg-[#444] transition-colors">
+            Logout
+        </button>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        const loadingState = document.getElementById('loading-state');
+        const profileCard = document.getElementById('profile-card');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        async function loadProfile() {
+            const res = await window.authApp.getCurrentUser();
+            
+            if (res.success) {
+                const user = res.data;
+                document.getElementById('avatar').src = `https://api.dicebear.com/7.x/initials/svg?seed=${user.username}`;
+                document.getElementById('username').textContent = user.username;
+                document.getElementById('email').textContent = user.email;
+                document.getElementById('role').textContent = user.role;
+                document.getElementById('created-at').textContent = new Date(user.createdAt).toLocaleDateString();
+
+                loadingState.classList.add('hidden');
+                profileCard.classList.remove('hidden');
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        logoutBtn.onclick = async () => {
+            logoutBtn.textContent = 'Logging out...';
+            logoutBtn.disabled = true;
+            const res = await window.authApp.logoutUser();
+            if (res.success) {
+                window.location.href = 'index.html';
+            } else {
+                alert('Logout failed: ' + res.message);
+                logoutBtn.textContent = 'Logout';
+                logoutBtn.disabled = false;
+            }
+        };
+
+        loadProfile();
+    </script>
+</body>
+</html>

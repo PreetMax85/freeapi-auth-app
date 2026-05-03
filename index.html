@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Register - Auth App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #111;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        .active-tab {
+            border-bottom: 2px solid white;
+        }
+        input {
+            background-color: #222;
+            border: 1px solid #333;
+            color: white;
+        }
+        input:focus {
+            outline: none;
+            border-color: #555;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-[400px] bg-[#1a1a1a] p-8 rounded-lg shadow-xl border border-[#333]">
+        <div class="flex mb-8 border-b border-[#333]">
+            <button id="login-tab" class="flex-1 pb-2 active-tab font-medium">Login</button>
+            <button id="register-tab" class="flex-1 pb-2 text-gray-500 hover:text-white font-medium">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="space-y-4">
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Username</label>
+                <input type="text" id="login-username" required class="w-full px-4 py-2 rounded-md">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Password</label>
+                <input type="password" id="login-password" required class="w-full px-4 py-2 rounded-md">
+            </div>
+            <button type="submit" class="w-full bg-[#333] text-white font-bold py-2 rounded-md hover:bg-[#444] transition-colors flex items-center justify-center">
+                <span id="login-btn-text">Login</span>
+                <div id="login-spinner" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2"></div>
+            </button>
+            <p id="login-error" class="text-red-500 text-sm hidden"></p>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="space-y-4 hidden">
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Username</label>
+                <input type="text" id="register-username" required class="w-full px-4 py-2 rounded-md">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Email</label>
+                <input type="email" id="register-email" required class="w-full px-4 py-2 rounded-md">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Password</label>
+                <input type="password" id="register-password" required class="w-full px-4 py-2 rounded-md">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Confirm Password</label>
+                <input type="password" id="register-confirm-password" required class="w-full px-4 py-2 rounded-md">
+            </div>
+            <button type="submit" class="w-full bg-[#333] text-white font-bold py-2 rounded-md hover:bg-[#444] transition-colors flex items-center justify-center">
+                <span id="register-btn-text">Register</span>
+                <div id="register-spinner" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2"></div>
+            </button>
+            <p id="register-error" class="text-red-500 text-sm hidden"></p>
+        </form>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        const loginTab = document.getElementById('login-tab');
+        const registerTab = document.getElementById('register-tab');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+
+        // Check if already logged in
+        async function checkSession() {
+            const res = await window.authApp.getCurrentUser();
+            if (res.success) {
+                window.location.href = 'dashboard.html';
+            }
+        }
+        checkSession();
+
+        // Tab Switcher
+        loginTab.onclick = () => {
+            loginTab.classList.add('active-tab');
+            loginTab.classList.remove('text-gray-500');
+            registerTab.classList.remove('active-tab');
+            registerTab.classList.add('text-gray-500');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+        };
+
+        registerTab.onclick = () => {
+            registerTab.classList.add('active-tab');
+            registerTab.classList.remove('text-gray-500');
+            loginTab.classList.remove('active-tab');
+            loginTab.classList.add('text-gray-500');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        };
+
+        // Login Submit
+        loginForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const btnText = document.getElementById('login-btn-text');
+            const spinner = document.getElementById('login-spinner');
+            const errorMsg = document.getElementById('login-error');
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+
+            btnText.textContent = 'Logging in...';
+            spinner.classList.remove('hidden');
+            errorMsg.classList.add('hidden');
+            submitBtn.disabled = true;
+            
+            const res = await window.authApp.loginUser(username, password);
+            
+            if (res.success) {
+                window.location.href = 'dashboard.html';
+            } else {
+                errorMsg.textContent = res.message;
+                errorMsg.classList.remove('hidden');
+                btnText.textContent = 'Login';
+                spinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        };
+
+        // Register Submit
+        registerForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+            const btnText = document.getElementById('register-btn-text');
+            const spinner = document.getElementById('register-spinner');
+            const errorMsg = document.getElementById('register-error');
+            const submitBtn = registerForm.querySelector('button[type="submit"]');
+
+            if (password !== confirmPassword) {
+                errorMsg.textContent = "Passwords do not match";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            btnText.textContent = 'Registering...';
+            spinner.classList.remove('hidden');
+            errorMsg.classList.add('hidden');
+            submitBtn.disabled = true;
+
+            const res = await window.authApp.registerUser(username, email, password);
+            
+            if (res.success) {
+                // Auto login after register
+                const loginRes = await window.authApp.loginUser(username, password);
+                if (loginRes.success) {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    errorMsg.textContent = "Registered but failed to login automatically.";
+                    errorMsg.classList.remove('hidden');
+                    btnText.textContent = 'Register';
+                    spinner.classList.add('hidden');
+                    submitBtn.disabled = false;
+                }
+            } else {
+                errorMsg.textContent = res.message;
+                errorMsg.classList.remove('hidden');
+                btnText.textContent = 'Register';
+                spinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
